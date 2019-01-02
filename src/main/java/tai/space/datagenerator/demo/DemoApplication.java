@@ -81,15 +81,27 @@ public class DemoApplication {
 
     public static void addGeneratedSamples()
     {
+        int normalIndex = 0;
+        int outlierIndex = 0;
         for(int i=0;i<1000;i++)
         {
-            DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss:SSSSSS");
+
+            DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss:SSS");
             Date date = new Date();
-            System.out.println(dateFormat.format(date));
+            //System.out.println(dateFormat.format(date));
             Map<String, Object> jsonMap = new HashMap<>();
-            jsonMap.put("Temperature",generateTemperature());
+            double generatedTemperatureValue = generateTemperature();
+            jsonMap.put("Temperature",generatedTemperatureValue);
             jsonMap.put("Time", dateFormat.format(date));
-            putSomethingForMe(jsonMap,"mygeneratedvalues","generatedtemperature",String.valueOf(i));
+            if(generatedTemperatureValue < 5 || generatedTemperatureValue > 25)
+            {
+                putSomethingForMe(jsonMap,"myoutlierindex","generatedtemperature",String.valueOf(outlierIndex));
+                outlierIndex++;
+            }
+            else{
+                putSomethingForMe(jsonMap,"mynormalindex","generatedtemperature",String.valueOf(normalIndex));
+                normalIndex++;
+            }
         }
     }
 
@@ -105,7 +117,7 @@ public class DemoApplication {
                 "    \"generatedtemperature\" : {\n" +
                 "      \"properties\" : {\n" +
                 "        \"Temperature\" : { \"type\" : \"integer\" },\n" +
-                "        \"Time\" : { \"type\" : \"date\", \"format\": \"yyyy/MM/dd HH:mm:ss:SSSSSS\" }\n" +
+                "        \"Time\" : { \"type\" : \"date\", \"format\": \"yyyy/MM/dd HH:mm:ss:SSS\" }\n" +
                 "      }\n" +
                 "    }\n" +
                 "  }\n" +
