@@ -1,17 +1,13 @@
 package tai.space.datagenerator.demo;
 
 import org.apache.http.HttpHost;
-import org.elasticsearch.ElasticsearchException;
 import org.elasticsearch.action.admin.indices.delete.DeleteIndexRequest;
 import org.elasticsearch.action.admin.indices.mapping.put.PutMappingRequest;
 import org.elasticsearch.action.get.GetRequest;
 import org.elasticsearch.action.get.GetResponse;
-import org.elasticsearch.action.index.IndexRequest;
-import org.elasticsearch.action.index.IndexResponse;
 import org.elasticsearch.action.support.master.AcknowledgedResponse;
 import org.elasticsearch.client.*;
 import org.elasticsearch.common.xcontent.XContentType;
-import org.elasticsearch.rest.RestStatus;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
@@ -19,33 +15,35 @@ import java.io.IOException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Random;
 
 
 @SpringBootApplication
 public class DemoApplication {
     static RestHighLevelClient client;
+    static Buffer myBuffer;
     public static void main(String[] args) throws IOException {
 
-        //SpringApplication.run(DemoApplication.class, args);
+        SpringApplication.run(DemoApplication.class, args);
         //System.out.println("Hello World !!!");
 
         client = new RestHighLevelClient(
                 RestClient.builder(
                         new HttpHost("localhost", 9200, "http"),
-                        new HttpHost("localhost", 9201, "http")));
+                        new HttpHost("localhost", 9201, "http")).setMaxRetryTimeoutMillis(100000));
 
+        myBuffer = new Buffer();
         //mapMyIndex();
-        addGeneratedSamples();
+        addGeneratedSamples();   //Sadece bunu açman yeterli
         //getSomethingForMe("mygeneratedvalues","generatedtemperature","2");
         //putSomethingForMe(jsonMap,"fulltextsearch","mysampletexts","13");
         //deleteSomethingForMe("mygeneratedvalues");
 
-
-        client.close();
+        //System.out.println(myBuffer.getCollectionSize());
+        //System.out.println(myBuffer.getCollectionSize());
+        //client.close();
     }
+
 
     public static double generateTemperature()
     {
@@ -63,45 +61,31 @@ public class DemoApplication {
 
     }
 
-    public static void putSomethingForMe (Map<String,Object> myJSONMap,String myIndex,String myType,String myID)
-    {
-
-        IndexRequest myPutRequest = new IndexRequest(myIndex,myType).id(myID).source(myJSONMap);
-        IndexResponse response = null;
-        try {
-            response = client.index(myPutRequest, RequestOptions.DEFAULT);
-        } catch(ElasticsearchException e) {
-            if (e.status() == RestStatus.CONFLICT) {
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        System.out.println(response.getResult());
-    }
-
     public static void addGeneratedSamples()
     {
+        myBuffer = new Buffer();
         int normalIndex = 0;
         int outlierIndex = 0;
-        for(int i=0;i<1000;i++)
+        DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss:SSS");
+        //Date date = new Date();
+        for(int i=0;i<8000;i++)
         {
-
-            DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss:SSS");
             Date date = new Date();
-            //System.out.println(dateFormat.format(date));
-            Map<String, Object> jsonMap = new HashMap<>();
+            //date.setTime(date.getTime()+300);
+
             double generatedTemperatureValue = generateTemperature();
-            jsonMap.put("Temperature",generatedTemperatureValue);
-            jsonMap.put("Time", dateFormat.format(date));
+            String generatedDate = dateFormat.format(date);
+            //System.out.println(generatedDate);
             if(generatedTemperatureValue < 5 || generatedTemperatureValue > 25)
             {
-                putSomethingForMe(jsonMap,"myoutlierindex","generatedtemperature",String.valueOf(outlierIndex));
+                myBuffer.addToBuffer(new GeneratedObject(outlierIndex,generatedDate,generatedTemperatureValue,"myoutlierindex","generatedtemperature"));
                 outlierIndex++;
             }
             else{
-                putSomethingForMe(jsonMap,"mynormalindex","generatedtemperature",String.valueOf(normalIndex));
+                myBuffer.addToBuffer(new GeneratedObject(normalIndex,generatedDate,generatedTemperatureValue,"mynormalindex","generatedtemperature"));
                 normalIndex++;
             }
+
         }
     }
 
