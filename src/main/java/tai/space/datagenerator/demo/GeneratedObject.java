@@ -16,6 +16,19 @@ public class GeneratedObject implements Event {
         this.myType = myType;
     }
 
+    public GeneratedObject(String myDate, Double myTemperature)
+    {
+        this.myDate = myDate;
+        this.myTemperature = myTemperature;
+        this.myType="generatedtemperature";
+        if(myTemperature < 5 || myTemperature > 25){
+            this.myIndex = "myoutlierindex";
+        }
+        else {
+            this.myIndex = "mynormalindex";
+        }
+    }
+
     public String getMyType() {
         return myType;
     }
