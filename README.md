@@ -536,6 +536,8 @@ Basılan verilerin bir zaman grafiği olarak gösterilmesinde **Timelion** kulla
 
 ## Sonuç
 
+Öncelikle yeni verilerin üretilmesi için, basılması beklenerek test yapılmıştır. Senkron çalışma yapısından dolayı zaman kaybına neden olduğundan, üretim ve veri basma işlemlerinin asenkron olarak yürütülmesinin çalışma süresini düşüreceği düşünülmüştür. Beklendiği üzere çalışma süresi 8.000 veri için 72'den 43 saniyeye düşmüştür. Daha sonra asenkron koşullarda yapılan testlerde veri sayısı arttırılarak, çalışma süresinin lineer olarak arttığı gözlemlenmiştir. Buffer içerisindeki verilerin tek tek basılması yerine, toplu bir şekilde basılmasının çalışma süresine etkisini test etmek amacıyla, **Bulk API** yardımıyla buffer içerisindeki veriler toplu bir şekilde Elasticsearch ortamına basılmış ve bunun çalışması süresini azalttığı tespit edilmiştir. Sadece asenkron bir şekilde 100.000 veri 300 saniyede basılabilirken, hem asenkron hem de Bulk API kullanılarak 100.000 verinin 56 saniyede basılabildiği görülmüştür. Buffer boyutunun, çalışma süresine etkisinin ölçülmesi için Asenkron+Bulk tipinde ve 100.000 veride test yapılmış ve buffer boyutu 20'den 100'e çıkartılmıştır. Bu testin sonuçlarına göre ise çalışma süresinin 56 saniyeden 9 saniyeye düştüğü gözlemlenmiştir.
+
 | Test Tipi      | Veri Boyutu | Buffer Boyutu | Çalışma Süresi |
 | :------------: |:-----------:| :------------:| :-------------:|
 | Senkron        | 8.000       | 20            | 72     |
