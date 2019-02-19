@@ -11,7 +11,7 @@ Elastisearch kurulumu için ;
 * [Elasticsearch](https://www.elastic.co/downloads/elasticsearch ) indirilip, dosyalar çıkartılır.
 * Dosyalar çıkartıldıktan sonra *".\elasticsearch-x.x.x\bin"* içindeki "elasticsearch.bat" çalıştırıldığında kurulum gerçekleştirilmiş ve Elasticsearch çalışmaya olacaktır.
 * Daha sonraki çalıştırmalar için yine *"elasticseach.bat"* kullanılır.
-* Elasticsearch'ün çalışıp çalışmadığını anlamak için browser üzerinden *"http://localhost:9200/"* adresi kontrol edilebilir (Default port değiştirilmedi ise). Aşağıdakine benzer bir yazı çıkması elastic search'ün ayakta olduğunu göstermektedir.
+* Elasticsearch'ün çalışıp çalışmadığını anlamak için browser üzerinden *"http://localhost:9200/"* adresi kontrol edilebilir (Default port değiştirilmedi ise). Aşağıdakine benzer bir yazı çıkması Elasticsearch'ün ayakta olduğunu göstermektedir.
 ```
 {
   "name" : "9t7cG_X",
@@ -533,3 +533,16 @@ Basılan verilerin bir zaman grafiği olarak gösterilmesinde **Timelion** kulla
 * Buffer boyutunun veri basma hızına etkisini test etmek amacıyla 100.000 veri için buffer boyutu 20'den 100'e çıkartılmıştır. Buffer boyutu 20 olduğunda 100.000 verinin Elasticsearch ortamına basılması 56 saniye sürerken, buffer boyutu 100'e çıkartıldığında 9 saniyeye düşmüştür. Bu da buffer boyutunun artmasının, çalışma zamanını düşürdüğünü göstermiştir. Ancak bu düşüş buffer boyutu veri boyutuna ulaştığında duracaktır. 
 
 ![alt text](https://github.com/aydinma06/demo/blob/master/Threadpool_Bulk-100000_Buffersize-20.png)
+
+## Sonuç
+
+| Test Tipi      | Veri Boyutu | Buffer Boyutu | Çalışma Süresi |
+| :------------: |:-----------:| :------------:| :-------------:|
+| Senkron        | 8.000       | 20            | 72     |
+| Asenkron       | 8.000       | 20            | 43     |
+| Asenkron       | 20.000      | 20            | 72     |
+| Asenkron       | 100.000     | 20            | 300    |
+| Asenkron+Bulk  | 8.000       | 20            | 6      |
+| Asenkron+Bulk  | 20.000      | 20            | 12     |
+| Asenkron+Bulk  | 100.000     | 20            | 56     |
+| Asenkron+Bulk  | 100.000     | 100           | 9      |
