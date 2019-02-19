@@ -1,12 +1,15 @@
 # Elasticsearch
 [Elasticsearch](https://www.elastic.co/), Apache Lucene tabanlı, Java programlama dili ile yazılmış açık kaynak kodlu bir arama ve analiz motorudur.
 
-## Kurulumu
+# Kibana
+[Kibana](https://www.elastic.co/products/kibana), Elasticsearch üzerindeki verilerin görselleştirilmesi ve analizinde kullanılan açık kaynak kodlu bir araçtır.
+
+## Elasticsearch Kurulumu
 Elastisearch kurulumu için ;
 
 
 * [Elasticsearch](https://www.elastic.co/downloads/elasticsearch ) indirilip, dosyalar çıkartılır.
-* Dosyalar çıkartıldıktan sonra *".\elasticsearch-6.5.2\bin"* içindeki "elasticsearch.bat" çalıştırıldığında kurulum gerçekleştirilmiş ve Elasticsearch çalışmaya olacaktır.
+* Dosyalar çıkartıldıktan sonra *".\elasticsearch-x.x.x\bin"* içindeki "elasticsearch.bat" çalıştırıldığında kurulum gerçekleştirilmiş ve Elasticsearch çalışmaya olacaktır.
 * Daha sonraki çalıştırmalar için yine *"elasticseach.bat"* kullanılır.
 * Elasticsearch'ün çalışıp çalışmadığını anlamak için browser üzerinden *"http://localhost:9200/"* adresi kontrol edilebilir (Default port değiştirilmedi ise). Aşağıdakine benzer bir yazı çıkması elastic search'ün ayakta olduğunu göstermektedir.
 ```
@@ -30,7 +33,18 @@ Elastisearch kurulumu için ;
 ```
 * Veya windows konsol üzerinden *"curl -X GET http://localhost:9200"* komutu çalıştırılabilir. 
 curl  yok ise;
-* [cURL](https://curl.haxx.se/download.html) indirilip, dosyalar çıkartıldıktan sonra *".\curl-7.63.0-win64-mingw\bin"* içindeki "curl.exe" çalıştırılarak kurulumu gerçekleştirilebilir.
+* [cURL](https://curl.haxx.se/download.html) indirilip, dosyalar çıkartıldıktan sonra *".\curl-x.x.x-win64-mingw\bin"* içindeki "curl.exe" çalıştırılarak kurulumu gerçekleştirilebilir.
+
+## Kibana Kurulumu
+Kibana kurulumu için ;
+
+
+* [Kibana](https://www.elastic.co/downloads/kibana) indirilip, dosyalar çıkartılır.
+* Dosyalar çıkartıldıktan sonra *".\kibana\bin"* içindeki "kibana.bat" çalıştırıldığında kurulum gerçekleştirilmiş ve Elasticsearch çalışmaya olacaktır.
+* Daha sonraki çalıştırmalar için yine *"kibana.bat"* kullanılır.
+* Özelliştirmeler için *".kibana\config"* içindeki "kibana.yml" dosyası kullanılabilir.(Port değiştirme,Elasticsearch url belirtme vs.) Daha önce Elasticsearch default ayarları değiştirilmedi ise herhangi bir düzeltme yapmaya gerek yoktur.
+* Kibana'nın çalışıp çalışmadığını anlamak için browser üzerinden *"http://localhost:5601/"* adresi kontrol edilebilir (Default port değiştirilmedi ise). Çalışması durumunda ilgili adresten kibana'nın arayüzüne ulaşılabilmektedir. Kibana'nın doğru bir şekilde çalışabilmesi için Elasticsearch'ün daha önceden çalıştırılmış olması gerekmektedir.
+
 
 ## Temel Kavramlar
 
@@ -472,3 +486,50 @@ GET companydatabase/_search
     ]
 }
 ```
+
+## Performans Testleri
+
+Java programlama dili kullanılarak, Elasticsearch Java High Level REST Client kullanılarak, öncelikle bir zaman damgasıyla birlikte rastgele sıcaklık değeri üreten daha sonra bu ürettiği verileri ilgili elasticsearch indexine basan bir program geliştirilmiştir. Verileri üretildiği gibi basmak yerine, bu veriler daha önce yeterli veri miktarına ulaşana kadar bir buffer'da saklanmıştır.Daha sonra kibana yardımıyla görselleştirilmiş ve zamana göre Elasticsearch'e basılan veri miktarı test edilmiştir.
+
+Basılan verilerin bir zaman grafiği olarak gösterilmesinde **Timelion** kullanılmıştır. Seçilen tarih ve aralık değerlerine göre veriyi zaman grafiğinde göstermektedir. Veri basılırken belirlenen alt ve üst sınır eşik değerlerine göre (5-25 değerleri arası) ilgili indexe gönderilmiştir. Verinin görselleştirilmesinde de bu sınır değerleri gösterilmiştir. İlgili Timelion kodu aşağıda verilmiştir.
+
+```
+.es(index=myoutlierindex*,metric=avg:Temperature,timefield=Time).label(label="Outlier Values"),
+.es(index=mynormalindex*,metric=avg:Temperature,timefield=Time).label(label="Normal Values"),
+.es(index=my*,metric=avg:Constant-1,timefield=Time).color(color=red).label(label="Lower Threshold"),
+.es(index=my*,metric=min:Constant-2,timefield=Time).color(color=red).label(label="Upper Threshold")
+```
+
+![alt text](https://github.com/aydinma06/demo/blob/master/Timelion.png)
+
+* İlk olarak buffer boyutu 20 olarak tutulmuş ve veriler üretilip buffer boyutu kadar veri basıldıktan sonra tekrar üretilmeye devam etmiştir. Bu şekilde 8.000 verinin Elasticsearch ortamına basılması 72 saniye sürmüştür.
+
+![alt text](https://github.com/aydinma06/demo/blob/master/Threadsiz.png)
+
+* Daha sonra veri üretilme ve basılmasının asenkron bir şekilde ilerleyebilmesi için threadli yapıya geçilmiştir. Yani veri üretilmeye devam ederken aynı zamanda Elasticsearch'e veri basılmaktadır. Bu şekilde 8.000 verinin Elasticsearch ortamına basılması 34 saniye sürmüştür.
+
+![alt text](https://github.com/aydinma06/demo/blob/master/Thread(new)-8000.png)
+
+* Bir önceki yapı kullanılırken veri miktarı 8.000'den 20.000'e çıkarılırken, verilerin basılma süresi de 34 saniyeden 72 saniyeye çıkmıştır.
+
+![alt text](https://github.com/aydinma06/demo/blob/master/Thread(new)-20000.png)
+
+* Yine bir önceki yapı kullanılırken veri miktarı 20.000'den 100.000'e çıkarılmış, verilerin basılma süresi de 72 saniyeden 6 dakikaya çıkmıştır. Bu da veri miktarının artışıyla birlikte, çalışma süresinde lineer bir artış gösterdiği gözlenmiştir.
+
+![alt text](https://github.com/aydinma06/demo/blob/master/Threadpool-100000.png)
+
+* Sonrasında buffer içerisindeki verilerin tek tek basılması yerine,"Bulk API" kullanılarak verilerin toplu bir şekilde basılmasının performansa etkisi test edilmiştir. Bu şekilde 8.000 verinin Elasticsearch ortamına basılması 6 saniye sürmüştür.
+
+![alt text](https://github.com/aydinma06/demo/blob/master/Threadpool_Bulk-8000.png)
+
+* Bir önceki yapı kullanılırken veri miktarı 8.000'den 20.000'e çıkarılırken, verilerin basılma süresi de 6 saniyeden 12 saniyeye çıkmıştır.
+
+![alt text](https://github.com/aydinma06/demo/blob/master/Threadpool_Bulk-200000.png)
+
+* Yine bir önceki yapı kullanılırken veri miktarı 20.000'den 100.000'e çıkarılmış, verilerin basılma süresi de 12 saniyeden 56 saniyeye çıkmıştır.
+
+![alt text](https://github.com/aydinma06/demo/blob/master/Threadpool_Bulk-100000.png)
+
+* Buffer boyutunun veri basma hızına etkisini test etmek amacıyla 100.000 veri için buffer boyutu 20'den 100'e çıkartılmıştır. Buffer boyutu 20 olduğunda 100.000 verinin Elasticsearch ortamına basılması 56 saniye sürerken, buffer boyutu 100'e çıkartıldığında 9 saniyeye düşmüştür. Bu da buffer boyutunun artmasının, çalışma zamanını düşürdüğünü göstermiştir. Ancak bu düşüş buffer boyutu veri boyutuna ulaştığında duracaktır. 
+
+![alt text](https://github.com/aydinma06/demo/blob/master/Threadpool_Bulk-100000_Buffersize-20.png)
