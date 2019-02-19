@@ -500,7 +500,7 @@ Basılan verilerin bir zaman grafiği olarak gösterilmesinde **Timelion** kulla
 .es(index=my*,metric=min:Constant-2,timefield=Time).color(color=red).label(label="Upper Threshold")
 ```
 
-![alt text](https://github.com/aydinma06/demo/blob/master/Timelion.png)
+![alt text](https://github.com/aydinma06/demo/blob/master/Timelion2.png)
 
 * İlk olarak buffer boyutu 20 olarak tutulmuş ve veriler üretilip buffer boyutu kadar veri basıldıktan sonra tekrar üretilmeye devam etmiştir. Bu şekilde 8.000 verinin Elasticsearch ortamına basılması 72 saniye sürmüştür.
 
